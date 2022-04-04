@@ -12,7 +12,7 @@ class AdaptiveAPLLayer():
         self.adapt_features_size = previous_size[1]
         self.size = size
         self.supervisor = supervisor
-        self.w = supervisor.variable(tf.truncated_normal(stddev=0.1, shape =[self.prev_inp_size, size]), name = 'w')
+        self.w = supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape =[self.prev_inp_size, size]), name = 'w')
         self.b = supervisor.variable(tf.constant(value=0.0, shape = [size]), name = 'b')
         self.has = []
         self.a_has = []
@@ -21,19 +21,19 @@ class AdaptiveAPLLayer():
         self.was = []
         self.wbs = []
         for i in range(nbr_hinges):
-            self.has.append(supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
+            self.has.append(supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
                                                 name = 'has'))
-            self.hbs.append(supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
+            self.hbs.append(supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
                                                 name = 'hbs'))
-            self.a_has.append(supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
+            self.a_has.append(supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
                                                   name = 'a_has'))
-            self.a_hbs.append(supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
+            self.a_hbs.append(supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[size]), var_list = regul_var_nbr,
                                                   name = 'a_hbs'))
             self.was.append(
-                supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[self.adapt_features_size, size]),
+                supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[self.adapt_features_size, size]),
                                     name = 'was'))
             self.wbs.append(
-                supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[self.adapt_features_size, size]),
+                supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[self.adapt_features_size, size]),
                                     name = 'wbs'))
 
     def __call__(self, list_of_inputs):
@@ -53,6 +53,6 @@ class AdaptiveAPLLayer():
         return [output]
 
     def default_output(self):
-        def1 = tf.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
+        def1 = tf.compat.v1.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
                                            shape=[None, self.size])
         return [self.supervisor.store_op(def1, 'default_output')]

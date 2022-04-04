@@ -7,6 +7,8 @@ import time
 from .NetworkSupervisor import NetworkSupervisor
 from ..DataFeeders.TrajectoriesSplitterNoGt import TrajectoriesSplitterNoGt
 
+tf.compat.v1.disable_eager_execution()
+
 class Network(NetworkSupervisor):
     def create_network(self, time_steps, input_size, net_layers, net_layer_types, linker,
                        cost_types, cost_functions_inputs, training_vars = [[-1]],
@@ -22,14 +24,14 @@ class Network(NetworkSupervisor):
             variables_lists = [[cnt for _ in el] for cnt, el in zip(range(len(net_layer_types)), net_layer_types)]
 
         self.to_pickle['input_size'] = input_size
-        self.store_op(tf.placeholder(tf.float32), 'lr')
-        inp = self.store_op(tf.placeholder(tf.float32, shape=[None, time_steps, input_size]), 'inputs')
-        self.batch_shape = tf.shape(inp)[0]
-        input_sequences_length = self.store_op(tf.placeholder(tf.float32, shape=[None, time_steps]),
+        self.store_op(tf.compat.v1.placeholder(tf.float32), 'lr')
+        inp = self.store_op(tf.compat.v1.placeholder(tf.float32, shape=[None, time_steps, input_size]), 'inputs')
+        self.batch_shape = tf.shape(input=inp)[0]
+        input_sequences_length = self.store_op(tf.compat.v1.placeholder(tf.float32, shape=[None, time_steps]),
                                                'input_sequences_length')
         # Define values required for training
-        self.store_op(tf.placeholder(tf.bool), 'is_training')
-        self.store_op(tf.placeholder(tf.float32), 'dropout')
+        self.store_op(tf.compat.v1.placeholder(tf.bool), 'is_training')
+        self.store_op(tf.compat.v1.placeholder(tf.float32), 'dropout')
         self.to_pickle['shuffle_intra'] = shuffle_intra
         if time_steps < 0:
             time_steps = 1
@@ -44,12 +46,12 @@ class Network(NetworkSupervisor):
         # Create variables
         nets = []
         net_number = 0
-        with tf.name_scope('Variables'):
+        with tf.compat.v1.name_scope('Variables'):
             for net, net_type, params, variables_list in zip(net_layers, net_layer_types, net_params, variables_lists):
-                with tf.name_scope('Net_' + str(net_number)):
+                with tf.compat.v1.name_scope('Net_' + str(net_number)):
                     current_net_layers = []
                     for cnt in range(len(net)):
-                        with tf.name_scope('Layer_' + str(cnt)):
+                        with tf.compat.v1.name_scope('Layer_' + str(cnt)):
                             layer_input_sizes = []
                             for link in linker[net_number][cnt]:
                                 if link[0] >= 0:
@@ -67,13 +69,13 @@ class Network(NetworkSupervisor):
                 net_number += 1
 
         # Create default output for linking
-        with tf.name_scope('Default_outputs'):
+        with tf.compat.v1.name_scope('Default_outputs'):
             default_nets_outputs = []
             for cnt1, net in enumerate(nets):
-                with tf.name_scope('Net_'+str(cnt1)):
+                with tf.compat.v1.name_scope('Net_'+str(cnt1)):
                     current_net_outputs = []
                     for kp, l in enumerate(net):
-                        with tf.name_scope('Layer_'+str(kp)):
+                        with tf.compat.v1.name_scope('Layer_'+str(kp)):
                             current_net_outputs.append(l.default_output())
                     default_nets_outputs.append(current_net_outputs)
 
@@ -94,13 +96,13 @@ class Network(NetworkSupervisor):
             nets_outputs.append(cur)
 
         for i in range(time_steps):
-            with tf.name_scope('Timestep_' + str(i)):
+            with tf.compat.v1.name_scope('Timestep_' + str(i)):
                 current_input = tf.squeeze(inp[i], axis=1)
                 current_lc = lc[i]
                 for net_number, net in enumerate(nets):
-                    with tf.name_scope('Net_' + str(net_number)):
+                    with tf.compat.v1.name_scope('Net_' + str(net_number)):
                         for l_number, l in enumerate(net):
-                            with tf.name_scope('Layer_' + str(l_number)):
+                            with tf.compat.v1.name_scope('Layer_' + str(l_number)):
                                 list_of_inputs = []
                                 for to_append_input in linker[net_number][l_number]:
                                     if to_append_input[0] == -1:
@@ -120,7 +122,7 @@ class Network(NetworkSupervisor):
                                 nets_outputs[net_number][l_number] = layer_out
 
                 # Now that we have defined everything, we need to define the cost and the outputs
-                with tf.name_scope('Costs_and_preds'):
+                with tf.compat.v1.name_scope('Costs_and_preds'):
                     cost_nbr = 0
                     for function_inputs, cost_cell in zip(cost_functions_inputs, cost_cells):
                         cost_function_input_list = []
@@ -146,7 +148,7 @@ class Network(NetworkSupervisor):
                 for out in nets_outputs[net_number][l_number]:
                     self.store_op(out, 'previous_outputs')
 
-        with tf.name_scope('Training'):
+        with tf.compat.v1.name_scope('Training'):
             for preds, outs, cs in zip(predictions, outputs, costs):
                 self.store_op(tf.stack(preds, axis=1), 'predictions')
                 self.store_op(tf.stack(outs, axis=1), 'final_output')
@@ -162,7 +164,7 @@ class Network(NetworkSupervisor):
                         net_vars += self.vars[net]
                 print ('Training vars for training op ', cnt)
                 print (net_vars)
-                optimiser = tf.train.AdamOptimizer(learning_rate=self.op_dict['lr'][-1])
+                optimiser = tf.compat.v1.train.AdamOptimizer(learning_rate=self.op_dict['lr'][-1])
                 if isinstance(train_cost, list):
                     cur_cost = []
                     for tc in train_cost:
@@ -175,16 +177,16 @@ class Network(NetworkSupervisor):
                 print('----------------')
                 for x, c in enumerate(cur_cost):
                     if self.to_pickle['tensorboard']:
-                        tf.summary.scalar('costs' + str(x), tf.reduce_mean(c))
-                final_cost = self.store_op(tf.reduce_mean(tf.add_n(cur_cost)), 'final_costs')
+                        tf.compat.v1.summary.scalar('costs' + str(x), tf.reduce_mean(input_tensor=c))
+                final_cost = self.store_op(tf.reduce_mean(input_tensor=tf.add_n(cur_cost)), 'final_costs')
                 self.store_op(optimiser.minimize(final_cost,
                                                  var_list=net_vars), 'train')
                 cnt += 1
 
         # Build the one-step graph
-        with tf.name_scope('Onestep_graph'):
+        with tf.compat.v1.name_scope('Onestep_graph'):
             print ('Building one step graph')
-            inp = self.store_op(tf.placeholder(tf.float32, shape=[None, input_size]), 'inputs_onestep')
+            inp = self.store_op(tf.compat.v1.placeholder(tf.float32, shape=[None, input_size]), 'inputs_onestep')
 
             nets_outputs = []
             for el in default_nets_outputs:
@@ -231,7 +233,7 @@ class Network(NetworkSupervisor):
                         self.store_op(out, 'previous_outputs_onestep')
 
         if self.to_pickle['tensorboard']:
-            self.store_op(tf.summary.merge_all(), 'merged')
+            self.store_op(tf.compat.v1.summary.merge_all(), 'merged')
 
     def take_step(self, input, prev_state=None, prediction_nbr = 0, elements = []):
         d = {self.op_dict['inputs_onestep'][-1]: input, self.op_dict['dropout'][0]:1.0,

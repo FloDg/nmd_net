@@ -10,10 +10,10 @@ class DropoutLayer():
 
     def __call__(self, list_of_inputs):
         inp = list_of_inputs[0]
-        out = tf.nn.dropout(inp, keep_prob=self.drop_prob)
+        out = tf.nn.dropout(inp, rate=1 - (self.drop_prob))
         return [out]
 
     def default_output(self):
-        def1 = tf.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
+        def1 = tf.compat.v1.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
                                            shape=[None, self.size])
         return [self.supervisor.store_op(def1, 'default_output')]

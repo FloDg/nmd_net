@@ -34,18 +34,18 @@ class NetworkSupervisor():
                                 shuffle_intra = shuffle_intra, net_params = net_params, cost_params = cost_params,
                                 variables_lists = variables_lists)
             if cpu_only:
-                config = tf.ConfigProto(
+                config = tf.compat.v1.ConfigProto(
                     device_count={'GPU': 0}
                 )
-                self.sess = tf.Session(config=config)
+                self.sess = tf.compat.v1.Session(config=config)
             else:
-                self.sess = tf.Session()
-            self.sess.run(tf.global_variables_initializer())
+                self.sess = tf.compat.v1.Session()
+            self.sess.run(tf.compat.v1.global_variables_initializer())
             self.to_pickle['training_iter'] = 0
             self.net_number = 0
             self.current_prefix = ''
         if self.to_pickle['tensorboard']:
-            self.summary_writer = tf.summary.FileWriter('/tmp/' + self.to_pickle['name'], self.sess.graph)
+            self.summary_writer = tf.compat.v1.summary.FileWriter('/tmp/' + self.to_pickle['name'], self.sess.graph)
 
     def create_network(self, time_steps, input_size, net_layers, net_layer_types, linker,
                        cost_types, cost_functions_inputs, training_vars = [[-1]],
@@ -72,58 +72,58 @@ class NetworkSupervisor():
 
     def save_model(self, file_path, relative_prefix=''):
         file_path = relative_prefix + 'Models/saved_models/' + file_path
-        saver = tf.train.Saver()
+        saver = tf.compat.v1.train.Saver()
         saver.save(self.sess, file_path)
         pickle.dump(self.to_pickle, open(file_path + '.pickle', 'wb'))
 
     def load_model(self, file_path, relative_prefix='', cpu_only = False):
         file_path = relative_prefix + 'Models/saved_models/' + file_path
         if not cpu_only:
-            self.sess = tf.Session()
+            self.sess = tf.compat.v1.Session()
         else:
-            config = tf.ConfigProto(
+            config = tf.compat.v1.ConfigProto(
                 device_count = {'GPU': 0}
             )
-            self.sess = tf.Session(config = config)
-        saver = tf.train.import_meta_graph(file_path + '.meta')
+            self.sess = tf.compat.v1.Session(config = config)
+        saver = tf.compat.v1.train.import_meta_graph(file_path + '.meta')
         saver.restore(self.sess, file_path)
         self.to_pickle = pickle.load(open(file_path + '.pickle', 'rb'))
 
         self.op_dict = {}
-        for op in tf.get_default_graph().get_all_collection_keys():
-            self.op_dict[op] = tf.get_collection(op)
+        for op in tf.compat.v1.get_default_graph().get_all_collection_keys():
+            self.op_dict[op] = tf.compat.v1.get_collection(op)
 
     def save_model_custom_path(self, file_path):
-        saver = tf.train.Saver()
+        saver = tf.compat.v1.train.Saver()
         saver.save(self.sess, file_path)
         pickle.dump(self.to_pickle, open(file_path + '.pickle', 'wb'))
 
     def load_model_custom_path(self, file_path, cpu_only = False):
         if not cpu_only:
-            self.sess = tf.Session()
+            self.sess = tf.compat.v1.Session()
         else:
-            config = tf.ConfigProto(
+            config = tf.compat.v1.ConfigProto(
                 device_count = {'GPU': 0}
             )
-            self.sess = tf.Session(config = config)
-        saver = tf.train.import_meta_graph(file_path + '.meta')
+            self.sess = tf.compat.v1.Session(config = config)
+        saver = tf.compat.v1.train.import_meta_graph(file_path + '.meta')
         saver.restore(self.sess, file_path)
         self.to_pickle = pickle.load(open(file_path + '.pickle', 'rb'))
 
         self.op_dict = {}
-        for op in tf.get_default_graph().get_all_collection_keys():
-            self.op_dict[op] = tf.get_collection(op)
+        for op in tf.compat.v1.get_default_graph().get_all_collection_keys():
+            self.op_dict[op] = tf.compat.v1.get_collection(op)
         
     def save_params_custom_path(self, file_path):
         print ("Writing only params...")
-        saver = tf.train.Saver()
+        saver = tf.compat.v1.train.Saver()
         saver.save(self.sess, file_path, write_meta_graph = False)
         pickle.dump(self.to_pickle, open(file_path + '.pickle', 'wb'))
         print ("Writing done !")
 
     def load_params_custom_path(self, file_path, cpu_only = False):
         print ("Restoring only params !")
-        saver = tf.train.Saver()
+        saver = tf.compat.v1.train.Saver()
         saver.restore(self.sess, file_path)
         self.to_pickle = pickle.load(open(file_path + '.pickle', 'rb'))
         print ("Restore done !")
@@ -133,15 +133,15 @@ class NetworkSupervisor():
             self.op_dict[name].append(op)
         else:
             self.op_dict[name] = [op]
-        tf.add_to_collection(name, op)
+        tf.compat.v1.add_to_collection(name, op)
         return op
 
     def close(self):
         self.sess.close()
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph()
 
     def reset_network(self):
-        self.sess.run(tf.global_variables_initializer())
+        self.sess.run(tf.compat.v1.global_variables_initializer())
 
     def get_var_value(self, list_name):
         return self.sess.run(self.vars[list_name])
@@ -192,4 +192,4 @@ class NetworkSupervisor():
                     return
 
     def get_number_of_params(self):
-        return np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()])
+        return np.sum([np.prod(v.get_shape().as_list()) for v in tf.compat.v1.trainable_variables()])

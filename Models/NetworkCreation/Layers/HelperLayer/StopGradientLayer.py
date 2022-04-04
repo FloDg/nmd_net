@@ -15,7 +15,7 @@ class StopGradientLayer():
     def default_output(self):
         default = []
         for s in self.size:
-            defx = tf.placeholder_with_default(tf.fill([self.supervisor.batch_shape, s], 0.0),
+            defx = tf.compat.v1.placeholder_with_default(tf.fill([self.supervisor.batch_shape, s], 0.0),
                                                shape=[None, s])
             default.append(self.supervisor.store_op(defx, 'default_output'))
         return default

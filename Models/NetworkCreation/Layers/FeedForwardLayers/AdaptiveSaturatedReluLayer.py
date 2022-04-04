@@ -11,10 +11,10 @@ class AdaptiveSaturatedReluLayer():
             self.nmd_type = params[0]
         self.size = size
         self.supervisor = supervisor
-        self.w = supervisor.variable(tf.truncated_normal(stddev=0.1, shape =[self.prev_inp_size, size]), name = 'w')
+        self.w = supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape =[self.prev_inp_size, size]), name = 'w')
         self.b = supervisor.variable(tf.constant(value=0.0, shape = [size]), name = 'b')
-        self.nmd_matrix_multbias = supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[self.nmd_feat_size, self.size]))
-        self.nmd_matrix_transbias = supervisor.variable(tf.truncated_normal(stddev=0.1, shape=[self.nmd_feat_size, self.size]))
+        self.nmd_matrix_multbias = supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[self.nmd_feat_size, self.size]))
+        self.nmd_matrix_transbias = supervisor.variable(tf.random.truncated_normal(stddev=0.1, shape=[self.nmd_feat_size, self.size]))
         # self.bistable = False
         # if 'gmax' in self.nmd_type:
         #     print ('With gmax')
@@ -38,6 +38,6 @@ class AdaptiveSaturatedReluLayer():
         return [output]
 
     def default_output(self):
-        def1 = tf.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
+        def1 = tf.compat.v1.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
                                            shape=[None, self.size])
         return [self.supervisor.store_op(def1, 'default_output')]

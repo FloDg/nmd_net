@@ -9,7 +9,7 @@ class MinimizeProduct():
         pred, out = self.get_pred(input_list)
         for inp in input_list:
             product = tf.multiply(product, inp)
-        cost = tf.reduce_mean(product)
+        cost = tf.reduce_mean(input_tensor=product)
         return pred, out, cost
 
     def get_pred(self, input_list):

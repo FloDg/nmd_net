@@ -12,10 +12,10 @@ class SampleNormalLayer():
         vars = list_of_inputs[1]
         sampled_act = (means +
                        tf.exp(vars / 2.0) *
-                       tf.random_normal(shape=(self.prev_inp_size,)))
+                       tf.random.normal(shape=(self.prev_inp_size,)))
         return [sampled_act]
 
     def default_output(self):
-        def1 = tf.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
+        def1 = tf.compat.v1.placeholder_with_default(tf.fill([self.supervisor.batch_shape, self.size], 0.0),
                                            shape=[None, self.size])
         return [self.supervisor.store_op(def1, 'default_output')]

@@ -1,8 +1,6 @@
-import tensorflow  as tf
 from Models.NetworkCreation.Network import Network
 import numpy as np
 import pickle
-import time
 
 class PPO_networks(object):
     def __init__(self, obs_dim, action_dim, indexes, inpvecdim, policy_types, value_types, policy_sizes, value_sizes,

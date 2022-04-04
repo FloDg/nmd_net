@@ -6,7 +6,7 @@ class MSE():
 
     def get_all(self, input_list, lc):
         pred, out = self.get_pred(input_list)
-        cost = tf.reduce_mean(tf.multiply(tf.square(tf.subtract(out, input_list[1])), lc))
+        cost = tf.reduce_mean(input_tensor=tf.multiply(tf.square(tf.subtract(out, input_list[1])), lc))
         return pred, out, cost
 
     def get_pred(self, input_list):
